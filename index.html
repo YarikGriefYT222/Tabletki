@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контроль приема лекарств</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 15px;
+            /* Крупный шрифт для чтения без очков */
+            font-size: 26px; 
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #d32f2f;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        #date-display {
+            text-align: center;
+            font-size: 22px;
+            color: #555;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .med-item {
+            display: flex;
+            align-items: center;
+            padding: 25px 15px;
+            border-bottom: 2px solid #f0f0f0;
+            gap: 15px;
+            transition: background 0.3s;
+        }
+
+        .med-info {
+            flex-grow: 1;
+        }
+
+        .med-name {
+            font-weight: bold;
+            display: block;
+            color: #000;
+            line-height: 1.2;
+        }
+
+        .med-desc {
+            font-size: 20px;
+            color: #cd6161;
+            font-weight: 500;
+        }
+
+        /* Огромный чекбокс для удобства нажатия */
+        input[type="checkbox"] {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .counter {
+            font-weight: 800;
+            font-size: 28px;
+            color: #2e7d32;
+            min-width: 90px;
+            text-align: center;
+            background: #e8f5e9;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .completed {
+            background-color: #f1f8e9;
+            opacity: 0.8;
+        }
+
+        .completed .med-name {
+            text-decoration: line-through;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💊 Мои Лекарства</h1>
+    <div id="date-display"></div>
+    <div id="med-list"></div>
+</div>
+
+<script>
+    // Ваша база данных Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-tvZ6EUAD_QqmPlpBzXJDyr3ra_VQ-Ws",
+        authDomain: "ruminenewsbot.firebaseapp.com",
+        databaseURL: "https://ruminenewsbot-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "ruminenewsbot",
+        storageBucket: "ruminenewsbot.firebasestorage.app",
+        messagingSenderId: "744143799736",
+        appId: "1:744143799736:web:80bea4b251b83b33c4bb4d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Список таблеток
+    const medicines = [
+        { id: 'triplixam', name: 'Трипликсам', dose: 1, time: 'Утром — 1 шт.' },
+        { id: 'cognum', name: 'Когнум', dose: 3, time: '3 раза в день' },
+        { id: 'diacarb', name: 'Диакарб', dose: 2, time: 'Утром и вечером' },
+        { id: 'pulmolor', name: 'ПульмоЛОР', dose: 2, time: 'Утром и вечером' },
+        { id: 'anaprilin', name: 'Анаприлин', dose: 3, time: '3 раза в день' },
+        { id: 'tyrozol', name: 'Тирозол', dose: 3, time: '3 раза в день' },
+        { id: 'keppra', name: 'КЕППРА', dose: 1, time: 'Вечером (~21:00)' },
+        { id: 'glycin', name: 'Глицин', dose: 3, time: '3 раза в день' }
+    ];
+
+    // Ключ дня (обновляется в 00:00)
+    function getTodayKey() {
+        const now = new Date();
+        // Используем локальную дату устройства
+        return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+    }
+
+    function renderList(takenData) {
+        const listDiv = document.getElementById('med-list');
+        const todayStr = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+        document.getElementById('date-display').innerText = todayStr;
+        
+        listDiv.innerHTML = '';
+
+        medicines.forEach(med => {
+            const count = (takenData && takenData[med.id]) ? takenData[med.id] : 0;
+            const isDone = count >= med.dose;
+
+            const item = document.createElement('div');
+            item.className = `med-item ${isDone ? 'completed' : ''}`;
+            
+            item.innerHTML = `
+                <div class="med-info">
+                    <span class="med-name">${med.name}</span>
+                    <span class="med-desc">${med.time}</span>
+                </div>
+                <div class="counter">${count}/${med.dose}</div>
+                <input type="checkbox" ${isDone ? 'checked' : ''} 
+                       onclick="updateMed('${med.id}', ${count}, ${med.dose})">
+            `;
+            listDiv.appendChild(item);
+        });
+    }
+
+    window.updateMed = function(id, currentCount, max) {
+        const today = getTodayKey();
+        let newCount = currentCount + 1;
+        
+        // Если выпито больше нормы, сбрасываем в 0 (на случай случайного нажатия)
+        if (newCount > max) newCount = 0; 
+
+        db.ref('pills/' + today + '/' + id).set(newCount);
+    };
+
+    // Слушаем изменения в базе (синхронизация между всеми устройствами)
+    const today = getTodayKey();
+    db.ref('pills/' + today).on('value', (snapshot) => {
+        renderList(snapshot.val());
+    });
+
+    // Проверка смены суток каждые 30 секунд
+    setInterval(() => {
+        const now = new Date();
+        if (now.getHours() === 0 && now.getMinutes() === 0) {
+            location.reload(); 
+        }
+    }, 30000);
+
+</script>
+
+</body>
+</html>
