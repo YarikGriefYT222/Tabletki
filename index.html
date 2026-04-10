@@ -14,6 +14,7 @@
             background-color: #f4f7f9;
             margin: 0;
             padding: 15px;
+            /* Крупный шрифт для чтения без очков */
             font-size: 26px; 
         }
 
@@ -67,6 +68,7 @@
             font-weight: 500;
         }
 
+        /* Огромный чекбокс для удобства нажатия */
         input[type="checkbox"] {
             width: 50px;
             height: 50px;
@@ -105,6 +107,7 @@
 </div>
 
 <script>
+    // Ваша база данных Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyA-tvZ6EUAD_QqmPlpBzXJDyr3ra_VQ-Ws",
         authDomain: "ruminenewsbot.firebaseapp.com",
@@ -127,11 +130,13 @@
         { id: 'anaprilin', name: 'Анаприлин', dose: 3, time: '3 раза в день' },
         { id: 'tyrozol', name: 'Тирозол', dose: 3, time: '3 раза в день' },
         { id: 'keppra', name: 'КЕППРА', dose: 1, time: 'Вечером (~21:00)' },
-        { id: 'opipram', name: 'Опіпрам', dose: 1, time: '1 раз в день' }
+        { id: 'glycin', name: 'Глицин', dose: 3, time: '3 раза в день' }
     ];
 
+    // Ключ дня (обновляется в 00:00)
     function getTodayKey() {
         const now = new Date();
+        // Используем локальную дату устройства
         return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
     }
 
@@ -166,16 +171,19 @@
         const today = getTodayKey();
         let newCount = currentCount + 1;
         
+        // Если выпито больше нормы, сбрасываем в 0 (на случай случайного нажатия)
         if (newCount > max) newCount = 0; 
 
         db.ref('pills/' + today + '/' + id).set(newCount);
     };
 
+    // Слушаем изменения в базе (синхронизация между всеми устройствами)
     const today = getTodayKey();
     db.ref('pills/' + today).on('value', (snapshot) => {
         renderList(snapshot.val());
     });
 
+    // Проверка смены суток каждые 30 секунд
     setInterval(() => {
         const now = new Date();
         if (now.getHours() === 0 && now.getMinutes() === 0) {
