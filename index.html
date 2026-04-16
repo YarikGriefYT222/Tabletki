@@ -14,7 +14,6 @@
             background-color: #f4f7f9;
             margin: 0;
             padding: 15px;
-            /* Крупный шрифт для чтения без очков */
             font-size: 26px; 
         }
 
@@ -34,11 +33,24 @@
             margin-bottom: 10px;
         }
 
+        /* Стиль для важного уведомления */
+        .important-note {
+            background-color: #fff9c4;
+            border: 2px dashed #fbc02d;
+            padding: 10px;
+            text-align: center;
+            font-size: 20px;
+            color: #856404;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
         #date-display {
             text-align: center;
             font-size: 22px;
             color: #555;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-weight: bold;
         }
 
@@ -68,7 +80,6 @@
             font-weight: 500;
         }
 
-        /* Огромный чекбокс для удобства нажатия */
         input[type="checkbox"] {
             width: 50px;
             height: 50px;
@@ -101,13 +112,13 @@
 <body>
 
 <div class="container">
+    <div class="important-note">⚠️ С 27 числа пить Тирозол по-новому!</div>
     <h1>💊 Мои Лекарства</h1>
     <div id="date-display"></div>
     <div id="med-list"></div>
 </div>
 
 <script>
-    // Ваша база данных Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyA-tvZ6EUAD_QqmPlpBzXJDyr3ra_VQ-Ws",
         authDomain: "ruminenewsbot.firebaseapp.com",
@@ -121,22 +132,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Список таблеток
+    // Список таблеток (ПульмоЛОР удален)
     const medicines = [
         { id: 'triplixam', name: 'Трипликсам', dose: 1, time: 'Утром — 1 шт.' },
         { id: 'cognum', name: 'Когнум', dose: 3, time: '3 раза в день' },
         { id: 'diacarb', name: 'Диакарб', dose: 2, time: 'Утром и вечером' },
-        { id: 'pulmolor', name: 'ПульмоЛОР', dose: 2, time: 'Утром и вечером' },
         { id: 'anaprilin', name: 'Анаприлин', dose: 3, time: '3 раза в день' },
-        { id: 'tyrozol', name: 'Тирозол', dose: 3, time: '3 раза в день' },
+        { id: 'tyrozol', name: 'Тирозол', dose: 2.5, time: 'Утро (1), День (1), Вечер (0.5)' },
         { id: 'keppra', name: 'КЕППРА', dose: 1, time: 'Вечером (~21:00)' },
         { id: 'glycin', name: 'Глицин', dose: 3, time: '3 раза в день' }
     ];
 
-    // Ключ дня (обновляется в 00:00)
     function getTodayKey() {
         const now = new Date();
-        // Используем локальную дату устройства
         return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
     }
 
@@ -169,21 +177,19 @@
 
     window.updateMed = function(id, currentCount, max) {
         const today = getTodayKey();
-        let newCount = currentCount + 1;
+        const step = (id === 'tyrozol') ? 0.5 : 1;
+        let newCount = currentCount + step;
         
-        // Если выпито больше нормы, сбрасываем в 0 (на случай случайного нажатия)
         if (newCount > max) newCount = 0; 
 
         db.ref('pills/' + today + '/' + id).set(newCount);
     };
 
-    // Слушаем изменения в базе (синхронизация между всеми устройствами)
     const today = getTodayKey();
     db.ref('pills/' + today).on('value', (snapshot) => {
         renderList(snapshot.val());
     });
 
-    // Проверка смены суток каждые 30 секунд
     setInterval(() => {
         const now = new Date();
         if (now.getHours() === 0 && now.getMinutes() === 0) {
