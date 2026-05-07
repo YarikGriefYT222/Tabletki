@@ -117,10 +117,10 @@
     <div id="date-display"></div>
 
     <div class="status-banner">
-        📌 <b>Анаприлин:</b> пропили 1 месяц.<br>
-        С 08.05.2026 пить по-другому!<br><br>
+        📌 <b>Анаприлин:</b> пропили 2 месяца.<br>
+        С 08.06.2026 пить по-другому! Сейчас: 2 таб. (утром и вечером).<br><br>
         📌 <b>Тирозол:</b> пропили 2 раза по 10 дней.<br>
-        С 28.05.2026 пить по-другому! Сейчас: 2 таб. (утро/вечер).
+        С 28.05.2026 пить по-другому! Сейчас: 2 таб. (утром и вечером).
     </div>
 
     <div id="med-list"></div>
@@ -140,14 +140,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Обновленный список лекарств
     const medicines = [
         { id: 'triplixam', name: 'Трипликсам', dose: 1, time: 'Утром — 1 шт.' },
         { id: 'cognum', name: 'Когнум', dose: 3, time: '3 раза в день' },
         { id: 'diacarb', name: 'Диакарб', dose: 1, time: 'Утром — 1 шт.' },
-        { id: 'anaprilin', name: 'Анаприлин', dose: 3, time: '3 раза в день' },
+        { id: 'anaprilin', name: 'Анаприлин', dose: 2, time: 'Утром и вечером (2 таб.)' },
         { id: 'tyrozol', name: 'Тирозол', dose: 2, time: 'Утром и вечером (2 таб.)' },
-        { id: 'izirel', name: 'Ізірел', dose: 2, time: 'В 18:00 и в 22:00 (2 таб.)' }, 
+        { id: 'izirel', name: 'Ізірел', dose: 2, time: '18:00 и 22:00 (2 таб. в день)' },
         { id: 'keppra', name: 'КЕППРА', dose: 1, time: 'Вечером (~21:00)' },
         { id: 'glycin', name: 'Глицин', dose: 3, time: '3 раза в день' }
     ];
