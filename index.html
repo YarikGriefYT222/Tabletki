@@ -140,13 +140,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Список лекарств (ПульмоЛОР удален, Тирозол изменен)
+    // Обновленный список лекарств
     const medicines = [
         { id: 'triplixam', name: 'Трипликсам', dose: 1, time: 'Утром — 1 шт.' },
         { id: 'cognum', name: 'Когнум', dose: 3, time: '3 раза в день' },
-        { id: 'diacarb', name: 'Диакарб', dose: 2, time: 'Утром и вечером' },
+        { id: 'diacarb', name: 'Диакарб', dose: 1, time: 'Утром — 1 шт.' },
         { id: 'anaprilin', name: 'Анаприлин', dose: 3, time: '3 раза в день' },
         { id: 'tyrozol', name: 'Тирозол', dose: 2, time: 'Утром и вечером (2 таб.)' },
+        { id: 'izirel', name: 'Ізірел', dose: 2, time: 'В 18:00 и в 22:00 (2 таб.)' }, 
         { id: 'keppra', name: 'КЕППРА', dose: 1, time: 'Вечером (~21:00)' },
         { id: 'glycin', name: 'Глицин', dose: 3, time: '3 раза в день' }
     ];
